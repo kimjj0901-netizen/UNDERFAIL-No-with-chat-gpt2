@@ -5,9 +5,23 @@
 - 범위: 프롤로그부터 최종장 직전까지
 - 상태: `Canon`과 `Proposal`을 분리한 본편 통합 초안
 - 결말부: 사용자 보류 사항을 침범하지 않도록 상세 확정하지 않음
-- 기준 문서: [GAME_OVERVIEW.md](./GAME_OVERVIEW.md), [CHARACTER_DATABASE.md](./CHARACTER_DATABASE.md), [CHARACTER_ROLE_MAPPING.md](./CHARACTER_ROLE_MAPPING.md), [UNDERFAIL_STORY_SUPPLEMENT_RESEARCH.md](./UNDERFAIL_STORY_SUPPLEMENT_RESEARCH.md)
+- 기준 문서: [CURRENT_CANON_BASELINE.md](./CURRENT_CANON_BASELINE.md), [GAME_OVERVIEW.md](./GAME_OVERVIEW.md), [CHARACTER_DATABASE.md](./CHARACTER_DATABASE.md), [CHARACTER_ROLE_MAPPING.md](./CHARACTER_ROLE_MAPPING.md)
+- 최신 진행·대본 Proposal: [STORY_PROGRESSION_MAPPING.md](./STORY_PROGRESSION_MAPPING.md), [STORY_SCRIPT.md](./STORY_SCRIPT.md)
 
 이 문서는 원작의 캐릭터·대사·맵·음악·스크립트를 복제하지 않는다. 원작에서 참고한 것은 보호자와의 분리, 지역별 규칙 학습, 행동 중심 전투, 관계의 재등장, 누적 루트 변화라는 기능이다. 각 기능은 풍화양상 고등학교와 사용자가 만든 인물로 다시 구성한다.
+
+## 본편 타당성 조정
+
+원본 초안과 기존 본편안을 대조한 결과, 다음 원칙으로 본편 범위를 조정했다.
+
+구체적인 장면 순서와 새 대사는 최신 진행 설계와 대본을 우선한다. 이 문서의 기존 장별 설명과 충돌하는 경우, 사용자 확정 사항을 침범하지 않는 범위에서 두 최신 문서를 기준으로 재검토한다.
+
+1. 원본의 지역 순서와 인물 기능은 유지하되, 학교 공간과 기록 체계가 각 지역의 플레이 규칙이 되도록 통합했다.
+2. `Focus = 0`은 주인공의 심사 실패로 분리하고, 상대에게 가하는 강제 제압·실제 살해의 결과는 별도 상태로 관리한다.
+3. 주요 보스는 전투만으로 통과할 수 있지만, 탐색으로 책임·두려움·업무 문서를 먼저 확인하면 비전투 해결이 가능하도록 했다.
+4. 원작식 누적 루트의 기능은 유지하되, UNDERFAIL에서는 `harm_count`, `truth_fragments`, 관계 상태, 재방문 결과를 함께 판정한다. 한 번의 선택으로 결말을 고정하지 않는다.
+5. 원본에 포함된 원작 고유 지명·대사·연출은 학교식 사건으로 교체했다. 원작 자료는 구조와 기능 검증에만 사용했다.
+
 
 ---
 

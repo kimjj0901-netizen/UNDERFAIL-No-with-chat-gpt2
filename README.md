@@ -1,22 +1,28 @@
 # UNDERFAIL
 
 학교를 배경으로 한 장편 2D 웹 RPG 기획 및 개발 저장소입니다.
-현재 단계는 **스토리·세계관·루트 구조 완성 전의 설계 단계**이며, 승인되지 않은 창작 설정은 문서에서 `Proposal`로 표시합니다.
+현재 단계는 **교문 수직 슬라이스를 구현하며 스토리 텍스트를 검수하는 단계**이며, 승인되지 않은 창작 설정은 문서에서 `Proposal`로 표시합니다.
 
 ## 프로젝트 상태
 
-- 현재 단계: 전체 기획 문서 초안
-- 실행 가능한 게임: 스토리 기준선 확정 후 구현 예정
+- 현재 단계: Phaser 기반 교문 수직 슬라이스
+- 실행 가능한 게임: 이동·NPC 상호작용·대화 선택지 프로토타입
 - 확정된 핵심 콘셉트: [docs/GAME_OVERVIEW.md](docs/GAME_OVERVIEW.md)
 - 스토리 진행 구조: [docs/STORY_OUTLINE.md](docs/STORY_OUTLINE.md)
 - 캐릭터 및 관계: [docs/CHARACTER_DATABASE.md](docs/CHARACTER_DATABASE.md)
 - 루트 설계: [docs/ROUTE_DESIGN.md](docs/ROUTE_DESIGN.md)
 - 전투 설계: [docs/BATTLE_DESIGN.md](docs/BATTLE_DESIGN.md)
 - 조사 및 설계 노트: [docs/RESEARCH_AND_DESIGN_NOTES.md](docs/RESEARCH_AND_DESIGN_NOTES.md)
-- 스토리 보충 조사 및 설계 기준선: [docs/UNDERFAIL_STORY_SUPPLEMENT_RESEARCH.md](docs/UNDERFAIL_STORY_SUPPLEMENT_RESEARCH.md)
+- 인물·대사 심층 연구: [docs/UNDERTALE_CHARACTER_DIALOGUE_RESEARCH.md](docs/UNDERTALE_CHARACTER_DIALOGUE_RESEARCH.md)
 - 본편 스토리 마스터 바이블: [docs/STORY_MASTER_BIBLE.md](docs/STORY_MASTER_BIBLE.md)
 - 대본 제작 바이블: [docs/SCRIPT_BIBLE.md](docs/SCRIPT_BIBLE.md)
+- 최신 정사 기준선: [docs/CURRENT_CANON_BASELINE.md](docs/CURRENT_CANON_BASELINE.md)
+- 게임 로직·기술 심층 보고서: [docs/UNDERFAIL_SYSTEMS_TECHNICAL_REPORT.md](docs/UNDERFAIL_SYSTEMS_TECHNICAL_REPORT.md)
+- 기술 선택 및 외부 소스 정책: [docs/TECHNOLOGY_DECISION.md](docs/TECHNOLOGY_DECISION.md)
+- 본편 진행 대응 설계: [docs/STORY_PROGRESSION_MAPPING.md](docs/STORY_PROGRESSION_MAPPING.md)
+- 본편 대본: [docs/STORY_SCRIPT.md](docs/STORY_SCRIPT.md)
 - 구현 순서: [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)
+- 실행 명령: `npm install` 후 `npm run dev`
 - 스토리 결정표: [STORY_DECISIONS.md](STORY_DECISIONS.md)
 - 창작 결정 워크북: [CREATIVE_DECISION_WORKBOOK.md](CREATIVE_DECISION_WORKBOOK.md)
 - 제작자 개입 패널: [STORY_CONTROL_PANEL.md](STORY_CONTROL_PANEL.md)
@@ -28,7 +34,7 @@
 
 ## 개발 원칙
 
-스토리와 시스템 설계를 먼저 검토한 뒤 TypeScript/Vite/Phaser 기반 웹 게임 구현으로 넘어갑니다. 원작의 디자인 원리는 연구하되, 캐릭터·대사·맵·그래픽·음악·스크립트는 독창적으로 제작합니다.
+스토리와 시스템 설계를 문서로 유지하되, 먼저 플레이 가능한 수직 슬라이스를 만들고 게임 내부 텍스트를 검수합니다. 현재 구현은 TypeScript/Vite/Phaser 기반 웹 게임이며 외부 이미지·음악·원작 스크립트를 사용하지 않습니다. 원작의 디자인 원리는 연구하되, 캐릭터·대사·맵·그래픽·음악·스크립트는 독창적으로 제작합니다.
 
 ## 가장 빠른 스토리 진행 방법
 
