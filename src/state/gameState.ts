@@ -4,10 +4,12 @@ export type GameState = {
   schemaVersion: 1;
   chapterId: 'opening';
   sceneId: string;
-  resolveIntent: number;
+  dormitorielResolve: number;
   recordRisk: number;
   routeHint: RouteHint;
-  flags: Record<string, boolean>;
+  flags: {
+    [key: string]: boolean;
+  };
 };
 
 const STORAGE_KEY = 'underfail-save-v1';
@@ -16,8 +18,8 @@ export function createInitialState(): GameState {
   return {
     schemaVersion: 1,
     chapterId: 'opening',
-    sceneId: 'gate',
-    resolveIntent: 0,
+    sceneId: 'awakening',
+    dormitorielResolve: 0,
     recordRisk: 0,
     routeHint: 'peace',
     flags: {},

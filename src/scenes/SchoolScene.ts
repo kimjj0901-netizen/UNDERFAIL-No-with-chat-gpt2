@@ -199,13 +199,19 @@ export class SchoolScene extends Phaser.Scene {
       if (this.player.y <= 150) this.changeRoom('bully_room');
     } else if (this.room === 'bully_room') {
       this.prompt.setText('Z / Enter - 불리와 대화');
-      if (this.player.y <= 150) this.changeRoom('gate');
+      if (this.player.y <= 150 && this.state.flags.bullyTutorial) {
+        this.changeRoom('gate');
+      }
     } else if (this.room === 'gate') {
       this.prompt.setText('Z / Enter - 조사 / 북쪽 복도');
-      if (this.player.y <= 150) this.changeRoom('welfare');
+      if (this.player.y <= 150 && this.state.flags.bullyTutorial) {
+        this.changeRoom('welfare');
+      }
     } else if (this.room === 'welfare') {
       this.prompt.setText('Z / Enter - 대화 / C - 상태');
-      if (this.player.x >= 872) this.changeRoom('hallway');
+      if (this.player.x >= 872 && this.state.flags.dormitorielReleased) {
+        this.changeRoom('hallway');
+      }
     } else if (this.room === 'hallway') {
       this.prompt.setText('동쪽 복도 진행');
       if (this.player.x >= 872) this.changeRoom('nerd');
@@ -320,9 +326,9 @@ export class SchoolScene extends Phaser.Scene {
 
   private handleChoice(nextId: string): void {
     if (nextId === 'dormitoriel_dream') {
-      this.state.resolveIntent = Math.min(3, this.state.resolveIntent + 1);
+      this.state.dormitorielResolve = Math.min(3, this.state.dormitorielResolve + 1);
       saveGameState(this.state);
-      if (this.state.resolveIntent >= 3) {
+      if (this.state.dormitorielResolve >= 3) {
         this.state.sceneId = 'hallway';
         this.state.flags.dormitorielReleased = true;
         saveGameState(this.state);
@@ -399,7 +405,7 @@ export class SchoolScene extends Phaser.Scene {
       fontSize: '24px',
     }).setOrigin(0.5);
     const content = this.add.text(260, 280,
-      `집중력 20/20\n맺힌 의지 ${this.state.resolveIntent}/3\n기록 위험 ${this.state.recordRisk}`, {
+      `집중력 20/20\n기록 위험 ${this.state.recordRisk}`, {
         color: '#cbd5e1',
         fontFamily: 'monospace',
         fontSize: '18px',
