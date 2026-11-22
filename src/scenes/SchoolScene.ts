@@ -2,7 +2,16 @@ import Phaser from 'phaser';
 import { openingDialogue, type DialogueBlock } from '../data/dialogue';
 import { loadGameState, saveGameState, type GameState } from '../state/gameState';
 
-type RoomId = 'awakening' | 'bully_room' | 'gate' | 'welfare' | 'hallway' | 'nerd';
+type RoomId =
+  | 'title'
+  | 'prologue'
+  | 'flower'
+  | 'bully_room'
+  | 'rescue'
+  | 'gate'
+  | 'welfare'
+  | 'hallway'
+  | 'nerd';
 type NpcId = 'bully' | 'dormitoriel' | 'nerd';
 type EncounterId = 'bully_tutorial' | 'nerd_first';
 
@@ -20,13 +29,17 @@ export class SchoolScene extends Phaser.Scene {
   private cancelKey!: Phaser.Input.Keyboard.Key;
   private menuKey!: Phaser.Input.Keyboard.Key;
   private state: GameState = loadGameState();
-  private room: RoomId = 'awakening';
+  private room: RoomId = 'title';
   private activeBlock?: DialogueBlock;
   private lineIndex = 0;
   private choiceMode = false;
   private dialogueOpen = false;
   private statusOpen = false;
   private selectedChoice = 0;
+  private nameBuffer = '';
+  private nameText?: Phaser.GameObjects.Text;
+  private prologueText?: Phaser.GameObjects.Text;
+  private prologueIndex = 0;
 
   constructor() {
     super('SchoolScene');
@@ -34,14 +47,22 @@ export class SchoolScene extends Phaser.Scene {
 
   create(): void {
     this.state = loadGameState();
+    if (!this.state.playerName) {
+      this.state.playerName = '';
+      this.state.sceneId = 'title';
+      this.state.prologueIndex = 0;
+      saveGameState(this.state);
+    }
     const savedRoom = this.state.sceneId as RoomId;
-    this.room = this.validRoom(savedRoom) ? savedRoom : 'awakening';
+    this.room = this.validRoom(savedRoom) ? savedRoom : 'title';
     this.choiceTexts = [];
+    this.nameBuffer = this.state.playerName || '';
+    this.prologueIndex = this.state.prologueIndex || 0;
 
     const completed = this.registry.get('completedEncounter') as EncounterId | undefined;
     if (completed === 'bully_tutorial') {
-      this.room = 'gate';
-      this.state.sceneId = 'gate';
+      this.room = 'rescue';
+      this.state.sceneId = 'rescue';
       saveGameState(this.state);
     }
     if (completed === 'nerd_first') {
@@ -58,7 +79,17 @@ export class SchoolScene extends Phaser.Scene {
   }
 
   private validRoom(room: RoomId): boolean {
-    return ['awakening', 'bully_room', 'gate', 'welfare', 'hallway', 'nerd'].includes(room);
+    return [
+      'title',
+      'prologue',
+      'flower',
+      'bully_room',
+      'rescue',
+      'gate',
+      'welfare',
+      'hallway',
+      'nerd',
+    ].includes(room);
   }
 
   private bindKeys(): void {
@@ -67,6 +98,7 @@ export class SchoolScene extends Phaser.Scene {
     this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     this.cancelKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.X);
     this.menuKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+    this.input.keyboard!.on('keydown', this.handleNameKey, this);
     this.prompt = this.add.text(480, 510, '', {
       color: '#cbd5e1',
       backgroundColor: '#090d16',
@@ -79,12 +111,14 @@ export class SchoolScene extends Phaser.Scene {
   private drawRoom(): void {
     this.cameras.main.setBackgroundColor('#111827');
     this.add.rectangle(480, 270, 960, 540, 0x111827);
-    this.add.rectangle(480, 54, 860, 64, 0x1f2937).setStrokeStyle(2, 0x4b5563);
-    this.add.text(480, 54, this.title(), {
-      color: '#f8fafc',
-      fontFamily: 'monospace',
-      fontSize: '22px',
-    }).setOrigin(0.5);
+    if (this.room !== 'title') {
+      this.add.rectangle(480, 54, 860, 64, 0x1f2937).setStrokeStyle(2, 0x4b5563);
+      this.add.text(480, 54, this.title(), {
+        color: '#f8fafc',
+        fontFamily: 'monospace',
+        fontSize: '22px',
+      }).setOrigin(0.5);
+    }
     this.add.rectangle(480, 448, 860, 238, 0x263244).setStrokeStyle(2, 0x44546a);
 
     for (let y = 150; y <= 420; y += 36) {
@@ -94,8 +128,11 @@ export class SchoolScene extends Phaser.Scene {
       this.add.rectangle(x, 285, 1, 270, 0x64748b, 0.18);
     }
 
-    if (this.room === 'awakening') this.drawAwakening();
+    if (this.room === 'title') this.drawTitle();
+    if (this.room === 'prologue') this.drawPrologue();
+    if (this.room === 'flower') this.drawFlower();
     if (this.room === 'bully_room') this.drawBullyRoom();
+    if (this.room === 'rescue') this.drawRescue();
     if (this.room === 'gate') this.drawGate();
     if (this.room === 'welfare') this.drawWelfare();
     if (this.room === 'hallway') this.drawHallway();
@@ -103,7 +140,10 @@ export class SchoolScene extends Phaser.Scene {
 
   private title(): string {
     const titles: Record<RoomId, string> = {
-      awakening: '학교 배정 — 시작',
+      title: 'UNDERFAIL',
+      prologue: '풍화양상 중학교 배정',
+      flower: '꽃밭',
+      rescue: '도미토리엘의 구출',
       bully_room: '교문 복도',
       gate: '풍화양상 고등학교',
       welfare: '교육복지반',
@@ -113,9 +153,68 @@ export class SchoolScene extends Phaser.Scene {
     return titles[this.room];
   }
 
-  private drawAwakening(): void {
-    this.add.rectangle(480, 180, 140, 84, 0x7c6249).setStrokeStyle(3, 0xc4a77d);
-    this.add.rectangle(480, 138, 210, 54, 0xa9a59a).setStrokeStyle(3, 0xd6d3d1);
+  private drawTitle(): void {
+    this.add.text(480, 180, 'UNDERFAIL', {
+      color: '#f8fafc',
+      fontFamily: 'monospace',
+      fontSize: '44px',
+    }).setOrigin(0.5);
+    this.add.text(480, 250, '이름을 입력하세요', {
+      color: '#cbd5e1',
+      fontFamily: 'monospace',
+      fontSize: '18px',
+    }).setOrigin(0.5);
+    this.nameText = this.add.text(480, 320, this.nameBuffer || '＿', {
+      color: '#fde68a',
+      fontFamily: 'monospace',
+      fontSize: '28px',
+    }).setOrigin(0.5);
+    this.add.text(480, 390, 'Z / Enter · 결정   X · 지움', {
+      color: '#94a3b8',
+      fontFamily: 'monospace',
+      fontSize: '15px',
+    }).setOrigin(0.5);
+  }
+
+  private drawPrologue(): void {
+    const panels = [
+      '꿈을 향해 나아가는 학생이, 그 꿈 위에 함께하는 학교가 있었다.',
+      '많은 학생의 꿈이 함께하는 합주곡 혼합고등학교.',
+      '그러나 학적과 성적 부진이 학교의 문을 닫게 했다.',
+      '202X년, 풍화양상 중학교의 배정 통지서가 펼쳐진다.',
+    ];
+    this.add.text(480, 115, '프롤로그', {
+      color: '#94a3b8',
+      fontFamily: 'monospace',
+      fontSize: '16px',
+    }).setOrigin(0.5);
+    this.add.rectangle(480, 285, 780, 250, 0x1f2937).setStrokeStyle(3, 0x64748b);
+    this.prologueText = this.add.text(480, 285, panels[this.prologueIndex] || panels[panels.length - 1], {
+      color: '#f8fafc',
+      fontFamily: 'monospace',
+      fontSize: '22px',
+      align: 'center',
+      wordWrap: { width: 700 },
+      lineSpacing: 10,
+    }).setOrigin(0.5);
+    this.add.text(480, 445, 'Z / Enter · 다음', {
+      color: '#94a3b8',
+      fontFamily: 'monospace',
+      fontSize: '15px',
+    }).setOrigin(0.5);
+  }
+
+  private drawFlower(): void {
+    this.add.rectangle(480, 300, 860, 290, 0x202a38);
+    for (let i = 0; i < 9; i += 1) {
+      this.add.circle(240 + (i % 3) * 240, 210 + Math.floor(i / 3) * 90, 18, 0xfde68a);
+    }
+    this.drawNpc('bully', 480, 260, 0xc084fc, '불리');
+  }
+
+  private drawRescue(): void {
+    this.add.rectangle(480, 300, 860, 290, 0x202a38);
+    this.drawNpc('dormitoriel', 480, 260, 0xfbbf24, '도미토리엘');
   }
 
   private drawBullyRoom(): void {
@@ -136,8 +235,12 @@ export class SchoolScene extends Phaser.Scene {
   }
 
   private createPlayer(): void {
+    if (this.room === 'title' || this.room === 'prologue') return;
     const positions: Record<RoomId, { x: number; y: number }> = {
-      awakening: { x: 480, y: 350 },
+      title: { x: 480, y: 350 },
+      prologue: { x: 480, y: 350 },
+      flower: { x: 480, y: 390 },
+      rescue: { x: 480, y: 390 },
       bully_room: { x: 480, y: 350 },
       gate: { x: 480, y: 390 },
       welfare: { x: 180, y: 350 },
@@ -168,6 +271,53 @@ export class SchoolScene extends Phaser.Scene {
   }
 
   update(): void {
+    if (this.room === 'title') {
+      this.prompt?.setText('이름 입력 · Z / Enter 결정 · X 지움');
+      if (this.confirmPressed()) {
+        this.state.playerName = this.nameBuffer.trim() || '주인공';
+        this.state.sceneId = 'prologue';
+        saveGameState(this.state);
+        this.changeRoom('prologue');
+      }
+      if (Phaser.Input.Keyboard.JustDown(this.cancelKey)) {
+        this.nameBuffer = '';
+        this.nameText?.setText('＿');
+      }
+      return;
+    }
+    if (this.room === 'prologue') {
+      this.prompt?.setText('Z / Enter · 다음 장면');
+      if (this.confirmPressed()) {
+        this.prologueIndex += 1;
+        if (this.prologueIndex >= 4) {
+          this.state.prologueIndex = 4;
+          this.state.sceneId = 'flower';
+          saveGameState(this.state);
+          this.changeRoom('flower');
+        } else {
+          this.state.prologueIndex = this.prologueIndex;
+          saveGameState(this.state);
+          const panels = [
+            '꿈을 향해 나아가는 학생이, 그 꿈 위에 함께하는 학교가 있었다.',
+            '많은 학생의 꿈이 함께하는 합주곡 혼합고등학교.',
+            '그러나 학적과 성적 부진이 학교의 문을 닫게 했다.',
+            '202X년, 풍화양상 중학교의 배정 통지서가 펼쳐진다.',
+          ];
+          this.prologueText?.setText(panels[this.prologueIndex]);
+        }
+      }
+      return;
+    }
+    if (this.room === 'flower') {
+      this.prompt?.setText('Z / Enter · 불리와 대화');
+      if (this.confirmPressed()) this.startEncounter('bully_tutorial');
+      return;
+    }
+    if (this.room === 'rescue') {
+      this.prompt?.setText('Z / Enter · 도미토리엘과 대화');
+      if (this.confirmPressed()) this.openDialogue('dormitoriel');
+      return;
+    }
     if (this.statusOpen) {
       if (Phaser.Input.Keyboard.JustDown(this.cancelKey) ||
         Phaser.Input.Keyboard.JustDown(this.menuKey)) this.closeStatus();
@@ -194,10 +344,7 @@ export class SchoolScene extends Phaser.Scene {
       return;
     }
 
-    if (this.room === 'awakening') {
-      this.prompt.setText('화살표 - 이동 / 북쪽 복도');
-      if (this.player.y <= 150) this.changeRoom('bully_room');
-    } else if (this.room === 'bully_room') {
+    if (this.room === 'bully_room') {
       this.prompt.setText('Z / Enter - 불리와 대화');
       if (this.player.y <= 150 && this.state.flags.bullyTutorial) {
         this.changeRoom('gate');
@@ -230,14 +377,31 @@ export class SchoolScene extends Phaser.Scene {
       Phaser.Input.Keyboard.JustDown(this.enterKey);
   }
 
+  private handleNameKey(event: KeyboardEvent): void {
+    if (this.room !== 'title') return;
+    if (event.key === 'z' || event.key === 'Z') return;
+    if (event.key === 'Backspace') {
+      this.nameBuffer = this.nameBuffer.slice(0, -1);
+    } else if (event.key.length === 1 && /^[가-힣a-zA-Z0-9 ]$/.test(event.key)) {
+      if (this.nameBuffer.length < 12) this.nameBuffer += event.key;
+    } else {
+      return;
+    }
+    this.nameText?.setText(this.nameBuffer || '＿');
+  }
+
   private nearbyNpc(): NpcId | undefined {
     const positions: Partial<Record<NpcId, { x: number; y: number }>> = {
-      bully: this.room === 'bully_room'
-        ? { x: 480, y: 250 }
-        : undefined,
-      dormitoriel: this.room === 'welfare'
-        ? { x: 720, y: 280 }
-        : undefined,
+      bully: this.room === 'flower'
+        ? { x: 480, y: 260 }
+        : this.room === 'bully_room'
+          ? { x: 480, y: 250 }
+          : undefined,
+      dormitoriel: this.room === 'rescue'
+        ? { x: 480, y: 260 }
+        : this.room === 'welfare'
+          ? { x: 720, y: 280 }
+          : undefined,
       nerd: this.room === 'nerd'
         ? { x: 700, y: 270 }
         : undefined,
@@ -320,6 +484,7 @@ export class SchoolScene extends Phaser.Scene {
         this.closeDialogue();
         if (this.room === 'bully_room') this.startEncounter('bully_tutorial');
         if (this.room === 'nerd') this.startEncounter('nerd_first');
+        if (this.room === 'rescue') this.changeRoom('welfare');
       }
     }
   }

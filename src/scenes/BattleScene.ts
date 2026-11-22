@@ -321,7 +321,7 @@ export class BattleScene extends Phaser.Scene {
     this.messageText.setText('불리의 시험 패턴이 멈춘다.');
     const state = loadGameState();
     state.flags.bullyTutorial = true;
-    state.sceneId = 'welfare';
+    state.sceneId = 'rescue';
     saveGameState(state);
     this.registry.set('completedEncounter', 'bully_tutorial');
     this.time.delayedCall(2200, () => this.scene.start('SchoolScene'));
@@ -349,7 +349,7 @@ export class BattleScene extends Phaser.Scene {
     state.recordRisk += 1;
     saveGameState(state);
     this.time.delayedCall(1800, () => {
-      state.sceneId = this.encounter === 'bully_tutorial' ? 'bully_room' : 'nerd';
+      state.sceneId = this.encounter === 'bully_tutorial' ? 'flower' : 'nerd';
       saveGameState(state);
       this.scene.start('SchoolScene');
     });
