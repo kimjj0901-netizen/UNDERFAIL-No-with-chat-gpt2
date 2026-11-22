@@ -1,213 +1,340 @@
 import Phaser from 'phaser';
 import { openingDialogue, type DialogueBlock } from '../data/dialogue';
+import { loadGameState, saveGameState, type GameState } from '../state/gameState';
 
-type NpcId = 'bully' | 'dormitoriel';
+type RoomId = 'awakening' | 'bully_room' | 'gate' | 'welfare' | 'hallway' | 'nerd';
+type NpcId = 'bully' | 'dormitoriel' | 'nerd';
+type EncounterId = 'bully_tutorial' | 'nerd_first';
 
 export class SchoolScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Rectangle;
   private prompt!: Phaser.GameObjects.Text;
   private dialoguePanel?: Phaser.GameObjects.Rectangle;
-  private dialogueText?: Phaser.GameObjects.Text;
   private dialogueSpeaker?: Phaser.GameObjects.Text;
+  private dialogueText?: Phaser.GameObjects.Text;
   private choiceTexts: Phaser.GameObjects.Text[] = [];
+  private statusPanel?: Phaser.GameObjects.Container;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private interactKey!: Phaser.Input.Keyboard.Key;
-  private dialogueKey!: Phaser.Input.Keyboard.Key;
-  private choiceUpKey!: Phaser.Input.Keyboard.Key;
-  private choiceDownKey!: Phaser.Input.Keyboard.Key;
-  private selectedChoice = 0;
-  private activeNpc?: NpcId;
+  private confirmKey!: Phaser.Input.Keyboard.Key;
+  private enterKey!: Phaser.Input.Keyboard.Key;
+  private cancelKey!: Phaser.Input.Keyboard.Key;
+  private menuKey!: Phaser.Input.Keyboard.Key;
+  private state: GameState = loadGameState();
+  private room: RoomId = 'awakening';
   private activeBlock?: DialogueBlock;
   private lineIndex = 0;
   private choiceMode = false;
   private dialogueOpen = false;
-  private nPcs: Record<NpcId, Phaser.GameObjects.Rectangle> = {} as Record<
-    NpcId,
-    Phaser.GameObjects.Rectangle
-  >;
+  private statusOpen = false;
+  private selectedChoice = 0;
 
   constructor() {
     super('SchoolScene');
   }
 
   create(): void {
-    this.drawSchool();
-    this.createCharacters();
+    this.state = loadGameState();
+    const savedRoom = this.state.sceneId as RoomId;
+    this.room = this.validRoom(savedRoom) ? savedRoom : 'awakening';
+    this.choiceTexts = [];
+
+    const completed = this.registry.get('completedEncounter') as EncounterId | undefined;
+    if (completed === 'bully_tutorial') {
+      this.room = 'gate';
+      this.state.sceneId = 'gate';
+      saveGameState(this.state);
+    }
+    if (completed === 'nerd_first') {
+      this.room = 'nerd';
+      this.state.sceneId = 'nerd';
+      saveGameState(this.state);
+    }
+    this.registry.set('completedEncounter', undefined);
+
+    this.drawRoom();
+    this.createPlayer();
+    this.createNpc();
+    this.bindKeys();
+  }
+
+  private validRoom(room: RoomId): boolean {
+    return ['awakening', 'bully_room', 'gate', 'welfare', 'hallway', 'nerd'].includes(room);
+  }
+
+  private bindKeys(): void {
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-    this.dialogueKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    this.choiceUpKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-    this.choiceDownKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
-    this.prompt = this.add
-      .text(480, 500, '화살표: 이동   Enter: 대화   Space: 다음', {
-        color: '#cbd5e1',
-        fontFamily: 'monospace',
-        fontSize: '16px',
-      })
-      .setOrigin(0.5);
+    this.confirmKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    this.cancelKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    this.menuKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+    this.prompt = this.add.text(480, 510, '', {
+      color: '#cbd5e1',
+      backgroundColor: '#090d16',
+      padding: { x: 12, y: 7 },
+      fontFamily: 'monospace',
+      fontSize: '15px',
+    }).setOrigin(0.5);
+  }
+
+  private drawRoom(): void {
+    this.cameras.main.setBackgroundColor('#111827');
+    this.add.rectangle(480, 270, 960, 540, 0x111827);
+    this.add.rectangle(480, 54, 860, 64, 0x1f2937).setStrokeStyle(2, 0x4b5563);
+    this.add.text(480, 54, this.title(), {
+      color: '#f8fafc',
+      fontFamily: 'monospace',
+      fontSize: '22px',
+    }).setOrigin(0.5);
+    this.add.rectangle(480, 448, 860, 238, 0x263244).setStrokeStyle(2, 0x44546a);
+
+    for (let y = 150; y <= 420; y += 36) {
+      this.add.rectangle(480, y, 860, 1, 0x64748b, 0.18);
+    }
+    for (let x = 50; x <= 910; x += 36) {
+      this.add.rectangle(x, 285, 1, 270, 0x64748b, 0.18);
+    }
+
+    if (this.room === 'awakening') this.drawAwakening();
+    if (this.room === 'bully_room') this.drawBullyRoom();
+    if (this.room === 'gate') this.drawGate();
+    if (this.room === 'welfare') this.drawWelfare();
+    if (this.room === 'hallway') this.drawHallway();
+  }
+
+  private title(): string {
+    const titles: Record<RoomId, string> = {
+      awakening: '학교 배정 — 시작',
+      bully_room: '교문 복도',
+      gate: '풍화양상 고등학교',
+      welfare: '교육복지반',
+      hallway: '기초학력동 복도',
+      nerd: '기초학력동 복도',
+    };
+    return titles[this.room];
+  }
+
+  private drawAwakening(): void {
+    this.add.rectangle(480, 180, 140, 84, 0x7c6249).setStrokeStyle(3, 0xc4a77d);
+    this.add.rectangle(480, 138, 210, 54, 0xa9a59a).setStrokeStyle(3, 0xd6d3d1);
+  }
+
+  private drawBullyRoom(): void {
+    this.add.rectangle(480, 270, 860, 130, 0x202936);
+  }
+
+  private drawGate(): void {
+    this.add.rectangle(480, 270, 180, 220, 0x182436).setStrokeStyle(5, 0x94a3b8);
+  }
+
+  private drawWelfare(): void {
+    this.add.rectangle(210, 260, 128, 82, 0x7d6a50).setStrokeStyle(3, 0xb6a581);
+    this.add.rectangle(720, 300, 100, 130, 0x283448).setStrokeStyle(3, 0x718096);
+  }
+
+  private drawHallway(): void {
+    this.add.rectangle(480, 270, 860, 28, 0x94a3b8);
+  }
+
+  private createPlayer(): void {
+    const positions: Record<RoomId, { x: number; y: number }> = {
+      awakening: { x: 480, y: 350 },
+      bully_room: { x: 480, y: 350 },
+      gate: { x: 480, y: 390 },
+      welfare: { x: 180, y: 350 },
+      hallway: { x: 180, y: 350 },
+      nerd: { x: 480, y: 350 },
+    };
+    const position = positions[this.room];
+    this.player = this.add.rectangle(position.x, position.y, 22, 22, 0xf87171)
+      .setStrokeStyle(2, 0xfecaca);
+  }
+
+  private createNpc(): void {
+    if (this.room === 'bully_room') this.drawNpc('bully', 480, 250, 0xc084fc, '불리');
+    if (this.room === 'welfare') this.drawNpc('dormitoriel', 720, 280, 0xfbbf24, '도미토리엘');
+    if (this.room === 'nerd') this.drawNpc('nerd', 700, 270, 0x60a5fa, '너드스타블룩');
+  }
+
+  private drawNpc(id: NpcId, x: number, y: number, color: number, label: string): void {
+    const body = this.add.rectangle(x, y, 36, 36, color).setStrokeStyle(2, 0xe5e7eb);
+    const name = this.add.text(x, y + 38, label, {
+      color: '#f8fafc',
+      backgroundColor: '#111827',
+      padding: { x: 6, y: 4 },
+      fontFamily: 'monospace',
+      fontSize: '13px',
+    }).setOrigin(0.5);
+    body.setData('npcId', id);
   }
 
   update(): void {
+    if (this.statusOpen) {
+      if (Phaser.Input.Keyboard.JustDown(this.cancelKey) ||
+        Phaser.Input.Keyboard.JustDown(this.menuKey)) this.closeStatus();
+      return;
+    }
     if (this.dialogueOpen) {
       this.updateDialogue();
       return;
     }
+    if (Phaser.Input.Keyboard.JustDown(this.menuKey)) {
+      this.openStatus();
+      return;
+    }
 
-    const speed = 2.5;
-    if (this.cursors.left.isDown) this.player.x -= speed;
-    if (this.cursors.right.isDown) this.player.x += speed;
-    if (this.cursors.up.isDown) this.player.y -= speed;
-    if (this.cursors.down.isDown) this.player.y += speed;
-    this.player.x = Phaser.Math.Clamp(this.player.x, 70, 890);
-    this.player.y = Phaser.Math.Clamp(this.player.y, 100, 430);
+    if (this.cursors.left.isDown) this.move(-2.6, 0);
+    if (this.cursors.right.isDown) this.move(2.6, 0);
+    if (this.cursors.up.isDown) this.move(0, -2.6);
+    if (this.cursors.down.isDown) this.move(0, 2.6);
 
-    const nearby = this.findNearbyNpc();
-    this.prompt.setText(
-      nearby
-        ? `${nearby === 'bully' ? '불리' : '도미토리엘'}에게 Enter`
-        : '화살표: 이동   Enter: 대화',
-    );
+    const npc = this.nearbyNpc();
+    if (npc) {
+      this.prompt.setText(`Z / Enter - ${this.npcName(npc)}와 대화`);
+      if (this.confirmPressed()) this.openDialogue(npc);
+      return;
+    }
 
-    if (nearby && Phaser.Input.Keyboard.JustDown(this.interactKey)) {
-      this.openDialogue(nearby);
+    if (this.room === 'awakening') {
+      this.prompt.setText('화살표 - 이동 / 북쪽 복도');
+      if (this.player.y <= 150) this.changeRoom('bully_room');
+    } else if (this.room === 'bully_room') {
+      this.prompt.setText('Z / Enter - 불리와 대화');
+      if (this.player.y <= 150) this.changeRoom('gate');
+    } else if (this.room === 'gate') {
+      this.prompt.setText('Z / Enter - 조사 / 북쪽 복도');
+      if (this.player.y <= 150) this.changeRoom('welfare');
+    } else if (this.room === 'welfare') {
+      this.prompt.setText('Z / Enter - 대화 / C - 상태');
+      if (this.player.x >= 872) this.changeRoom('hallway');
+    } else if (this.room === 'hallway') {
+      this.prompt.setText('동쪽 복도 진행');
+      if (this.player.x >= 872) this.changeRoom('nerd');
+    } else {
+      this.prompt.setText('Z / Enter - 너드스타블룩과 대화');
     }
   }
 
-  private drawSchool(): void {
-    this.add.rectangle(480, 270, 960, 540, 0x10131c);
-    this.add.rectangle(480, 285, 820, 330, 0x263244);
-    this.add.rectangle(480, 120, 820, 70, 0x17202e);
-    this.add
-      .text(480, 55, '풍화양상 고등학교 — 교육복지반 입구', {
-        color: '#f8fafc',
-        fontFamily: 'monospace',
-        fontSize: '24px',
-      })
-      .setOrigin(0.5);
-    this.add
-      .text(480, 120, '성적과 생활기록에 의해 배정된 학교. 아직 선택하지 않은 길이 남아 있다.', {
-        color: '#94a3b8',
-        fontFamily: 'monospace',
-        fontSize: '14px',
-      })
-      .setOrigin(0.5);
-    this.add.rectangle(480, 455, 820, 12, 0x0f172a);
-    this.add.text(115, 150, '교문', {
-      color: '#fbbf24',
-      fontFamily: 'monospace',
-      fontSize: '16px',
-    });
-    this.add.text(760, 150, '교육복지실', {
-      color: '#86efac',
-      fontFamily: 'monospace',
-      fontSize: '16px',
-    });
+  private move(dx: number, dy: number): void {
+    this.player.x = Phaser.Math.Clamp(this.player.x + dx, 86, 874);
+    this.player.y = Phaser.Math.Clamp(this.player.y + dy, 150, 418);
   }
 
-  private createCharacters(): void {
-    this.player = this.add.rectangle(480, 350, 22, 22, 0xf87171);
-    this.add
-      .text(480, 375, '주인공', {
-        color: '#fecaca',
-        fontFamily: 'monospace',
-        fontSize: '13px',
-      })
-      .setOrigin(0.5);
-
-    this.nPcs.bully = this.add.rectangle(190, 245, 34, 34, 0xc084fc);
-    this.add
-      .text(190, 280, '불리', {
-        color: '#e9d5ff',
-        fontFamily: 'monospace',
-        fontSize: '14px',
-      })
-      .setOrigin(0.5);
-
-    this.nPcs.dormitoriel = this.add.rectangle(770, 245, 34, 34, 0xfbbf24);
-    this.add
-      .text(770, 280, '도미토리엘', {
-        color: '#fef3c7',
-        fontFamily: 'monospace',
-        fontSize: '14px',
-      })
-      .setOrigin(0.5);
+  private confirmPressed(): boolean {
+    return Phaser.Input.Keyboard.JustDown(this.confirmKey) ||
+      Phaser.Input.Keyboard.JustDown(this.enterKey);
   }
 
-  private findNearbyNpc(): NpcId | undefined {
-    const candidates: NpcId[] = ['bully', 'dormitoriel'];
-    return candidates.find((id) => {
-      const npc = this.nPcs[id];
-      return Phaser.Math.Distance.Between(this.player.x, this.player.y, npc.x, npc.y) < 70;
-    });
+  private nearbyNpc(): NpcId | undefined {
+    const positions: Partial<Record<NpcId, { x: number; y: number }>> = {
+      bully: this.room === 'bully_room'
+        ? { x: 480, y: 250 }
+        : undefined,
+      dormitoriel: this.room === 'welfare'
+        ? { x: 720, y: 280 }
+        : undefined,
+      nerd: this.room === 'nerd'
+        ? { x: 700, y: 270 }
+        : undefined,
+    };
+    for (const id of ['bully', 'dormitoriel', 'nerd'] as NpcId[]) {
+      const position = positions[id];
+      if (position && Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        position.x,
+        position.y,
+      ) < 82) return id;
+    }
+    return undefined;
+  }
+
+  private npcName(id: NpcId): string {
+    if (id === 'bully') return '불리';
+    if (id === 'dormitoriel') return '도미토리엘';
+    return '너드스타블룩';
   }
 
   private openDialogue(npc: NpcId): void {
-    this.activeNpc = npc;
     this.activeBlock = openingDialogue[npc];
     this.lineIndex = 0;
-    this.selectedChoice = 0;
     this.choiceMode = false;
+    this.selectedChoice = 0;
     this.dialogueOpen = true;
-    this.createDialoguePanel();
-    this.renderDialogue();
-  }
-
-  private createDialoguePanel(): void {
-    this.dialoguePanel = this.add.rectangle(480, 400, 760, 170, 0x0b1020).setStrokeStyle(3, 0xf8fafc);
-    this.dialogueSpeaker = this.add
-      .text(125, 330, '', {
-        color: '#fde68a',
-        fontFamily: 'monospace',
-        fontSize: '20px',
-      })
-      .setOrigin(0, 0.5);
-    this.dialogueText = this.add.text(125, 365, '', {
+    this.dialoguePanel = this.add.rectangle(480, 405, 780, 155, 0x0b1020, 0.98)
+      .setStrokeStyle(3, 0xd8dee9);
+    this.dialogueSpeaker = this.add.text(118, 342, '', {
+      color: '#fde68a',
+      fontFamily: 'monospace',
+      fontSize: '20px',
+    });
+    this.dialogueText = this.add.text(118, 380, '', {
       color: '#f8fafc',
       fontFamily: 'monospace',
-      fontSize: '18px',
-      wordWrap: { width: 670 },
-      lineSpacing: 8,
+      fontSize: '17px',
+      wordWrap: { width: 724 },
+      lineSpacing: 7,
     });
+    this.renderDialogue();
   }
 
   private updateDialogue(): void {
     if (!this.activeBlock) return;
-
-    if (this.activeBlock.choices && !this.choiceMode && Phaser.Input.Keyboard.JustDown(this.dialogueKey)) {
-      this.choiceMode = true;
-      this.renderChoices();
-      return;
-    }
-
     if (this.choiceMode) {
-      if (Phaser.Input.Keyboard.JustDown(this.choiceUpKey)) {
+      if (Phaser.Input.Keyboard.JustDown(this.cursors.up!) ||
+        Phaser.Input.Keyboard.JustDown(this.cursors.left!)) {
         this.selectedChoice =
           (this.selectedChoice - 1 + this.activeBlock.choices!.length) %
           this.activeBlock.choices!.length;
         this.renderChoices();
       }
-      if (Phaser.Input.Keyboard.JustDown(this.choiceDownKey)) {
-        this.selectedChoice = (this.selectedChoice + 1) % this.activeBlock.choices!.length;
+      if (Phaser.Input.Keyboard.JustDown(this.cursors.down!) ||
+        Phaser.Input.Keyboard.JustDown(this.cursors.right!)) {
+        this.selectedChoice =
+          (this.selectedChoice + 1) % this.activeBlock.choices!.length;
         this.renderChoices();
       }
-      if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
-        const nextId = this.activeBlock.choices![this.selectedChoice].next;
-        this.activeBlock = openingDialogue[nextId];
-        this.lineIndex = 0;
+      if (this.confirmPressed()) this.handleChoice(
+        this.activeBlock.choices![this.selectedChoice].next,
+      );
+      if (Phaser.Input.Keyboard.JustDown(this.cancelKey)) {
         this.choiceMode = false;
         this.renderDialogue();
       }
       return;
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.dialogueKey)) {
-      this.lineIndex += 1;
-      if (this.lineIndex >= this.activeBlock.lines.length) {
-        this.closeDialogue();
-      } else {
+    if (this.confirmPressed()) {
+      if (this.lineIndex + 1 < this.activeBlock.lines.length) {
+        this.lineIndex += 1;
         this.renderDialogue();
+      } else if (this.activeBlock.choices) {
+        this.choiceMode = true;
+        this.renderChoices();
+      } else {
+        this.closeDialogue();
+        if (this.room === 'bully_room') this.startEncounter('bully_tutorial');
+        if (this.room === 'nerd') this.startEncounter('nerd_first');
       }
     }
+  }
+
+  private handleChoice(nextId: string): void {
+    if (nextId === 'dormitoriel_dream') {
+      this.state.resolveIntent = Math.min(3, this.state.resolveIntent + 1);
+      saveGameState(this.state);
+      if (this.state.resolveIntent >= 3) {
+        this.state.sceneId = 'hallway';
+        this.state.flags.dormitorielReleased = true;
+        saveGameState(this.state);
+        this.closeDialogue();
+        this.changeRoom('hallway');
+        return;
+      }
+    }
+    this.activeBlock = openingDialogue[nextId];
+    this.lineIndex = 0;
+    this.choiceMode = false;
+    this.renderDialogue();
   }
 
   private renderDialogue(): void {
@@ -215,9 +342,6 @@ export class SchoolScene extends Phaser.Scene {
     this.dialogueSpeaker.setText(this.activeBlock.speaker);
     this.dialogueText.setText(this.activeBlock.lines[this.lineIndex]);
     this.clearChoices();
-    if (this.activeBlock.choices) {
-      this.dialogueText.setText(`${this.activeBlock.lines[this.lineIndex]}\n\nSpace: 선택지 열기`);
-    }
   }
 
   private renderChoices(): void {
@@ -225,13 +349,14 @@ export class SchoolScene extends Phaser.Scene {
     this.clearChoices();
     this.activeBlock.choices.forEach((choice, index) => {
       const marker = index === this.selectedChoice ? '▶ ' : '  ';
-      this.choiceTexts.push(
-        this.add.text(160, 410 + index * 26, `${marker}${choice.label}`, {
+      this.choiceTexts.push(this.add.text(150, 416 + index * 27,
+        `${marker}${choice.label}`, {
           color: index === this.selectedChoice ? '#fbbf24' : '#f8fafc',
+          backgroundColor: '#101827',
+          padding: { x: 8, y: 4 },
           fontFamily: 'monospace',
-          fontSize: '17px',
-        }),
-      );
+          fontSize: '16px',
+        }));
     });
   }
 
@@ -249,7 +374,43 @@ export class SchoolScene extends Phaser.Scene {
     this.dialogueSpeaker = undefined;
     this.dialogueText = undefined;
     this.activeBlock = undefined;
-    this.activeNpc = undefined;
     this.dialogueOpen = false;
+  }
+
+  private changeRoom(room: RoomId): void {
+    this.state.sceneId = room;
+    saveGameState(this.state);
+    this.registry.set('completedEncounter', undefined);
+    this.scene.restart();
+  }
+
+  private startEncounter(id: EncounterId): void {
+    this.registry.set('encounterId', id);
+    this.scene.start('BattleScene');
+  }
+
+  private openStatus(): void {
+    this.statusOpen = true;
+    const panel = this.add.rectangle(480, 300, 440, 220, 0x090d16, 0.98)
+      .setStrokeStyle(3, 0xf8fafc);
+    const title = this.add.text(480, 230, '상태', {
+      color: '#f8fafc',
+      fontFamily: 'monospace',
+      fontSize: '24px',
+    }).setOrigin(0.5);
+    const content = this.add.text(260, 280,
+      `집중력 20/20\n맺힌 의지 ${this.state.resolveIntent}/3\n기록 위험 ${this.state.recordRisk}`, {
+        color: '#cbd5e1',
+        fontFamily: 'monospace',
+        fontSize: '18px',
+        lineSpacing: 10,
+      });
+    this.statusPanel = this.add.container(0, 0, [panel, title, content]);
+  }
+
+  private closeStatus(): void {
+    this.statusPanel?.destroy();
+    this.statusPanel = undefined;
+    this.statusOpen = false;
   }
 }

@@ -1,8 +1,16 @@
 # UNDERFAIL 프로젝트 운영 지침
 
+## 스토리 기준 우선순위
+
+- 주요 스토리 작업의 1차 기준은 저장소 루트의 `undertale_start_to_undyne_dialogue_index_ko.md`와 `docs/UNDERFAIL_INTEGRATED_STORY_CANON.md`다.
+- 사용자 워크북에서 사용자가 직접 작성한 답변과 제작자 개입 패널의 직접 결정은 원작 구조 정보보다 우선한다.
+- 오래된 본편 초안 문서, 중복 정사 문서, 루트/결말 요약 문서를 새 스토리 사실로 되살리지 않는다.
+- 원작 대사 원문과 원작의 고유 대사 변형을 재작성하지 않는다. 원작 자료는 장면 순서와 대화 기능만 참고한다.
+- Proposal을 Canon으로 승격할 때는 사용자 명시적 승인을 요구한다.
+
 ## 정사와 제안
 
-- `Canon`: 사용자가 확정했거나 승인한 설정. 현재 정사 목록은 `docs/GAME_OVERVIEW.md`의 정사 표를 기준으로 한다.
+- `Canon`: 사용자가 확정했거나 승인한 설정. 현재 정사 목록은 `docs/UNDERFAIL_INTEGRATED_STORY_CANON.md`의 기준 우선순위와 사용자 직접 답변을 기준으로 한다.
 - `Proposal`: 새롭게 제안했으나 승인되지 않은 설정. 구현이나 다른 문서의 확정 표현에 사용하지 않는다.
 - `Deprecated`: 변경 또는 폐기된 과거 설정. 삭제하지 말고 변경 사유와 대체 설정을 기록한다.
 - 사용자의 승인 없이 Proposal을 Canon으로 승격하지 않는다.
@@ -19,7 +27,7 @@
 
 ## 대본 작성 원칙
 
-대본을 작성하기 전에 [docs/CURRENT_CANON_BASELINE.md](../docs/CURRENT_CANON_BASELINE.md), [docs/UNDERTALE_CHARACTER_DIALOGUE_RESEARCH.md](../docs/UNDERTALE_CHARACTER_DIALOGUE_RESEARCH.md), [docs/SCRIPT_BIBLE.md](../docs/SCRIPT_BIBLE.md)를 확인한다. 세 문서의 역할은 각각 최신 사용자 설정, 원작 대사의 기능 분석, UNDERFAIL 대본 생산 규칙이다.
+대본을 작성하기 전에 `docs/UNDERFAIL_INTEGRATED_STORY_CANON.md`와 `undertale_start_to_undyne_dialogue_index_ko.md`를 확인한다. 전자는 사용자 결정과 원작 구조를 통합한 기준서이고, 후자는 장면 순서와 대화 분기의 1차 원작 참고 자료이다.
 
 ### 장면 설계
 
@@ -101,7 +109,7 @@ returnChange      재방문에서 바뀌는 말과 행동
 
 ## 문서 변경 순서
 
-1. `GAME_OVERVIEW.md`에서 정사와 제안의 상태를 확인한다.
-2. 스토리·캐릭터·루트·전투 문서를 함께 갱신한다.
+1. `docs/UNDERFAIL_INTEGRATED_STORY_CANON.md`에서 정사와 제안의 상태를 확인한다.
+2. 통합 기준서와 원작 대화 분기 색인을 함께 대조한다.
 3. 서로 다른 문서의 이름, 플래그, 조건, 결과가 일치하는지 점검한다.
 4. 구현 단계에서는 승인된 콘텐츠만 코드에 넣는다.

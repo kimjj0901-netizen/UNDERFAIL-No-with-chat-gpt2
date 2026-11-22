@@ -4,7 +4,7 @@
 
 현재 저장소에는 Phaser 기반 교문 수직 슬라이스가 있으며, 이동·NPC 상호작용·대화 선택지를 먼저 검수하는 단계다. 장편 스토리의 모든 세부를 확정하기 전에 플레이 가능한 작은 단위를 만들고, 텍스트는 게임 내부에서 직접 수정한다.
 
-조사와 대본 기준은 [RESEARCH_AND_DESIGN_NOTES.md](RESEARCH_AND_DESIGN_NOTES.md), [CURRENT_CANON_BASELINE.md](CURRENT_CANON_BASELINE.md), [UNDERFAIL_SYSTEMS_TECHNICAL_REPORT.md](UNDERFAIL_SYSTEMS_TECHNICAL_REPORT.md), [SCRIPT_BIBLE.md](SCRIPT_BIBLE.md)에 기록한다. 이 단계의 콘텐츠는 모두 Proposal이다.
+조사와 대본 기준은 [UNDERFAIL_INTEGRATED_STORY_CANON.md](UNDERFAIL_INTEGRATED_STORY_CANON.md)와 [../undertale_start_to_undyne_dialogue_index_ko.md](../undertale_start_to_undyne_dialogue_index_ko.md)에 기록한다. 이 단계의 미승인 콘텐츠는 Proposal로 남는다.
 
 ## 단계
 

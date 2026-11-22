@@ -5,28 +5,18 @@
 
 ## 프로젝트 상태
 
-- 현재 단계: Phaser 기반 교문 수직 슬라이스
-- 실행 가능한 게임: 이동·NPC 상호작용·대화 선택지 프로토타입
-- 확정된 핵심 콘셉트: [docs/GAME_OVERVIEW.md](docs/GAME_OVERVIEW.md)
-- 스토리 진행 구조: [docs/STORY_OUTLINE.md](docs/STORY_OUTLINE.md)
-- 캐릭터 및 관계: [docs/CHARACTER_DATABASE.md](docs/CHARACTER_DATABASE.md)
-- 루트 설계: [docs/ROUTE_DESIGN.md](docs/ROUTE_DESIGN.md)
-- 전투 설계: [docs/BATTLE_DESIGN.md](docs/BATTLE_DESIGN.md)
-- 조사 및 설계 노트: [docs/RESEARCH_AND_DESIGN_NOTES.md](docs/RESEARCH_AND_DESIGN_NOTES.md)
-- 인물·대사 심층 연구: [docs/UNDERTALE_CHARACTER_DIALOGUE_RESEARCH.md](docs/UNDERTALE_CHARACTER_DIALOGUE_RESEARCH.md)
-- 본편 스토리 마스터 바이블: [docs/STORY_MASTER_BIBLE.md](docs/STORY_MASTER_BIBLE.md)
-- 대본 제작 바이블: [docs/SCRIPT_BIBLE.md](docs/SCRIPT_BIBLE.md)
-- 최신 정사 기준선: [docs/CURRENT_CANON_BASELINE.md](docs/CURRENT_CANON_BASELINE.md)
+- 현재 단계: Phaser 기반 초반 수직 슬라이스
+- 주요 스토리 기준서: [docs/UNDERFAIL_INTEGRATED_STORY_CANON.md](docs/UNDERFAIL_INTEGRATED_STORY_CANON.md)
+- 원작 장면·분기·대화 기능 기준: [undertale_start_to_undyne_dialogue_index_ko.md](undertale_start_to_undyne_dialogue_index_ko.md)
+- 창작 결정 워크북: [CREATIVE_DECISION_WORKBOOK.md](CREATIVE_DECISION_WORKBOOK.md)
+- 제작자 개입 및 직접 결정: [STORY_CONTROL_PANEL.md](STORY_CONTROL_PANEL.md)
+- 실행 가능한 게임: 이동·NPC 상호작용·대화 선택지·초반 전투 프로토타입
 - 게임 로직·기술 심층 보고서: [docs/UNDERFAIL_SYSTEMS_TECHNICAL_REPORT.md](docs/UNDERFAIL_SYSTEMS_TECHNICAL_REPORT.md)
 - 기술 선택 및 외부 소스 정책: [docs/TECHNOLOGY_DECISION.md](docs/TECHNOLOGY_DECISION.md)
-- 본편 진행 대응 설계: [docs/STORY_PROGRESSION_MAPPING.md](docs/STORY_PROGRESSION_MAPPING.md)
-- 본편 대본: [docs/STORY_SCRIPT.md](docs/STORY_SCRIPT.md)
 - 구현 순서: [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)
 - 실행 명령: `npm install` 후 `npm run dev`
-- 스토리 결정표: [STORY_DECISIONS.md](STORY_DECISIONS.md)
 - 창작 결정 워크북: [CREATIVE_DECISION_WORKBOOK.md](CREATIVE_DECISION_WORKBOOK.md)
 - 제작자 개입 패널: [STORY_CONTROL_PANEL.md](STORY_CONTROL_PANEL.md)
-- 등장인물 대응표: [docs/CHARACTER_ROLE_MAPPING.md](docs/CHARACTER_ROLE_MAPPING.md)
 
 ## 정사 관리
 
@@ -51,4 +41,4 @@ A3: 추천 기본값 채택
 
 ## 다음 작업 요청 방법
 
-[STORY_DECISIONS.md](STORY_DECISIONS.md)를 직접 수정해 주세요. 모든 항목을 완벽하게 정할 필요는 없으며, `추천안 채택`, `보류`, `수정`을 자유롭게 사용할 수 있습니다. 수정본을 기준으로 설정을 통합한 뒤 상세 대본과 첫 게임 프로젝트 생성을 시작합니다.
+[CREATIVE_DECISION_WORKBOOK.md](CREATIVE_DECISION_WORKBOOK.md) 또는 [STORY_CONTROL_PANEL.md](STORY_CONTROL_PANEL.md)에 직접 결정한 내용을 기준으로 작업합니다. 나머지 장별 세부는 승인된 Canon과 원작 대화·분기 구조만을 사용해 작성합니다.

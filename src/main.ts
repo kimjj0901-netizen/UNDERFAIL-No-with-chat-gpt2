@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { SchoolScene } from './scenes/SchoolScene';
+import { BattleScene } from './scenes/BattleScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -8,7 +9,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 540,
   backgroundColor: '#10131c',
   pixelArt: true,
-  scene: [SchoolScene],
+  scene: [SchoolScene, BattleScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
